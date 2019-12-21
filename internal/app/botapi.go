@@ -1,9 +1,6 @@
 package app
 
 import (
-	"regexp"
-	"strings"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
 )
@@ -74,41 +71,33 @@ func (b *BotAPI) Handler() error {
 		if update.Message == nil {
 			continue
 		}
-		message := strings.ReplaceAll(update.Message.Text, " ", "")
-		if update.Message.Entities != nil && update.Message.ForwardFromChat != nil &&
-			b.isValidationUser(update.Message.ForwardFromChat.UserName) &&
-			b.isValidationMessage(message) {
-			continue
-		} else if update.Message.Entities != nil && update.Message.From != nil &&
-			b.isValidationUser(update.Message.From.UserName) &&
-			b.isValidationMessage(message) {
-			continue
-		}
-		delMessageConfig := tgbotapi.DeleteMessageConfig{
+		deleteMessageConfig := tgbotapi.DeleteMessageConfig{
 			ChatID:    update.Message.Chat.ID,
 			MessageID: update.Message.MessageID,
 		}
-		b.bot.DeleteMessage(delMessageConfig)
+		if update.Message.Entities != nil && update.Message.ForwardFromChat != nil && !b.isValidationChannel(update.Message.ForwardFromChat.UserName) {
+			b.bot.DeleteMessage(deleteMessageConfig)
+		} else if update.Message.Entities != nil && update.Message.From != nil && !b.isValidationUser(update.Message.From.UserName) {
+			b.bot.DeleteMessage(deleteMessageConfig)
+		}
 	}
 	return nil
 }
 
-func (b *BotAPI) isValidationUser(username string) bool {
-	for _, accessUsername := range b.config.Access {
-		if accessUsername == username {
+func (b *BotAPI) isValidationChannel(c string) bool {
+	for _, channel := range b.config.AccessChannels {
+		if channel == c {
 			return true
 		}
 	}
 	return false
 }
 
-func (b *BotAPI) isValidationMessage(message string) bool {
-	re, err := regexp.Compile(b.config.Regexp)
-	if err != nil {
-		return false
+func (b *BotAPI) isValidationUser(u string) bool {
+	for _, accessusers := range b.config.AccessUsers {
+		if u == accessusers {
+			return true
+		}
 	}
-	if !re.Match([]byte(message)) {
-		return false
-	}
-	return true
+	return false
 }
