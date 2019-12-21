@@ -1,0 +1,5 @@
+"debug_mode" = <bool> set debug mode
+"log_level" = <str> logger level
+"token"= <str> telegram bot token
+"access_usernames"= array <str> usernames for verification 
+"access_channels" = array <str> usernames channels for verification
