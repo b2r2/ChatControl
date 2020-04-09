@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/b2r2/ChatControl/internal/app"
+	"github.com/b2r2/chat-controller-bot/internal/app"
 
 	"github.com/BurntSushi/toml"
 )
