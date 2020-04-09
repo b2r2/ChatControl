@@ -1,1 +1,1 @@
-# ChatControl
+# chat-controller-bot
