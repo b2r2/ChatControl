@@ -1,4 +1,4 @@
-module github.com/b2r2/ChatControl
+module github.com/b2r2/chat-controller-bot
 
 go 1.12
 
