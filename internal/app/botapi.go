@@ -75,10 +75,11 @@ func (b *BotAPI) Handler() error {
 			ChatID:    update.Message.Chat.ID,
 			MessageID: update.Message.MessageID,
 		}
-		if update.Message.Entities != nil && update.Message.ForwardFromChat != nil && !b.isValidationChannel(update.Message.ForwardFromChat.UserName) {
-			b.bot.DeleteMessage(deleteMessageConfig)
-		} else if update.Message.Entities != nil && update.Message.From != nil && !b.isValidationUser(update.Message.From.UserName) {
-			b.bot.DeleteMessage(deleteMessageConfig)
+		isStateDeleteMessage := update.Message.Entities != nil && ((update.Message.ForwardFromChat != nil && !b.isValidationChannel(update.Message.ForwardFromChat.UserName)) || (update.Message.From != nil && !b.isValidationUser(update.Message.From.UserName)))
+		if isStateDeleteMessage {
+			if _, err := b.bot.DeleteMessage(deleteMessageConfig); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
