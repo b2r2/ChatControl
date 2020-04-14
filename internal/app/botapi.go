@@ -75,15 +75,6 @@ func (b *BotAPI) Handler() error {
 			ChatID:    update.Message.Chat.ID,
 			MessageID: update.Message.MessageID,
 		}
-		/*
-			isStateDeleteMessage := (update.Message.Entities != nil || update.Message.CaptionEntities != nil || update.Message.Sticker != nil) && ((update.Message.ForwardFromChat != nil && !b.isValidationChannel(update.Message.ForwardFromChat.UserName)) || (update.Message.From != nil && !b.isValidationUser(update.Message.From.UserName)))
-			switch
-			if isStateDeleteMessage {
-				if _, err := b.bot.DeleteMessage(deleteMessageConfig); err != nil {
-					return err
-				}
-			}
-		*/
 		isStateDeleteMessage := ((b.config.StickerMode && update.Message.Sticker != nil) || update.Message.Entities != nil || update.Message.CaptionEntities != nil) && ((update.Message.ForwardFromChat != nil && !b.isValidationChannel(update.Message.ForwardFromChat.UserName)) || (update.Message.From != nil && !b.isValidationUser(update.Message.From.UserName)))
 		if isStateDeleteMessage {
 			if _, err := b.bot.DeleteMessage(deleteMessageConfig); err != nil {
