@@ -7,6 +7,7 @@ type Config struct {
 	LogLevel       string   `toml:"log_level"`
 	AccessUsers    []string `toml:"access_users"`
 	AccessChannels []string `toml:"access_channels"`
+	StickerMode    bool     `toml:"sticker_mode"`
 }
 
 // NewConfig return struct config

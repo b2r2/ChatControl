@@ -1,5 +1,6 @@
 "debug_mode" = <bool> set debug mode
 "log_level" = <str> logger level
+"sticker_mode" = <bool> if true, the sticker will be removed
 "token"= <str> telegram bot token
 "access_users"= array <str> usernames for verification 
 "access_channels" = array <str> usernames channels for verification
