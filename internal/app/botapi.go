@@ -1,6 +1,10 @@
 package app
 
 import (
+	"regexp"
+	"strings"
+	"unicode"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
 )
@@ -28,13 +32,16 @@ func (b *BotAPI) Start() error {
 	}
 
 	if err := b.configureBot(); err != nil {
+		b.logger.Printf("configureBot: %s\n", err)
 		return err
 	}
 
 	b.logger.Info("Starting bot. Debug mode:", b.bot.Debug)
-	if err := b.Handler(); err != nil {
+	if err := b.handler(); err != nil {
+		b.logger.Printf("handler: %s\n", err)
 		return err
 	}
+
 	return nil
 }
 
@@ -65,19 +72,24 @@ func (b *BotAPI) configureLogger() error {
 	return nil
 }
 
-// Handler ...
-func (b *BotAPI) Handler() error {
+func (b *BotAPI) handler() error {
 	for update := range b.updates {
 		if update.Message == nil {
 			continue
 		}
-		deleteMessageConfig := tgbotapi.DeleteMessageConfig{
+		mc := tgbotapi.DeleteMessageConfig{
 			ChatID:    update.Message.Chat.ID,
 			MessageID: update.Message.MessageID,
 		}
-		isStateDeleteMessage := ((b.config.StickerMode && update.Message.Sticker != nil) || update.Message.Entities != nil || update.Message.CaptionEntities != nil) && ((update.Message.ForwardFromChat != nil && !b.isValidationChannel(update.Message.ForwardFromChat.UserName)) || (update.Message.From != nil && !b.isValidationUser(update.Message.From.UserName)))
-		if isStateDeleteMessage {
-			if _, err := b.bot.DeleteMessage(deleteMessageConfig); err != nil {
+		isSticker := b.config.StickerMode && update.Message.Sticker != nil
+		isChannel := update.Message.ForwardFromChat != nil && !b.isVerifyChannel(update.Message.ForwardFromChat.UserName)
+		isUser := update.Message.From != nil && !b.isVerifyUser(update.Message.From.UserName)
+		isLink := update.Message.From != nil && b.isContainedLink(update.Message.Text)
+		isEntities := update.Message.Entities != nil || update.Message.CaptionEntities != nil
+
+		isRemoveMessage := (isSticker || isEntities || isLink) && (isChannel || isUser)
+		if isRemoveMessage {
+			if _, err := b.bot.DeleteMessage(mc); err != nil {
 				return err
 			}
 		}
@@ -85,7 +97,7 @@ func (b *BotAPI) Handler() error {
 	return nil
 }
 
-func (b *BotAPI) isValidationChannel(c string) bool {
+func (b *BotAPI) isVerifyChannel(c string) bool {
 	for _, channel := range b.config.AccessChannels {
 		if channel == c {
 			return true
@@ -94,11 +106,25 @@ func (b *BotAPI) isValidationChannel(c string) bool {
 	return false
 }
 
-func (b *BotAPI) isValidationUser(u string) bool {
+func (b *BotAPI) isVerifyUser(u string) bool {
 	for _, user := range b.config.AccessUsers {
 		if u == user {
 			return true
 		}
 	}
 	return false
+}
+
+func (b *BotAPI) isContainedLink(s string) bool {
+	return b.handleRegexp(b.handleText(s)) //or Link Validation?
+}
+
+func (b *BotAPI) handleRegexp(s string) bool {
+	return regexp.MustCompile(b.config.Regexp).MatchString(s)
+}
+
+func (b *BotAPI) handleText(s string) string {
+	return strings.Join(strings.FieldsFunc(s, func(c rune) bool {
+		return unicode.IsSpace(c)
+	}), "")
 }

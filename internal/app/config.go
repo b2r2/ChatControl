@@ -8,6 +8,7 @@ type Config struct {
 	AccessUsers    []string `toml:"access_users"`
 	AccessChannels []string `toml:"access_channels"`
 	StickerMode    bool     `toml:"sticker_mode"`
+	Regexp         string   `toml:"regexp"`
 }
 
 // NewConfig return struct config
